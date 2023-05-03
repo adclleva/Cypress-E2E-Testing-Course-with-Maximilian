@@ -11,6 +11,8 @@ describe('contact form', () => {
       expect(el.text()).to.eq('Send Message')
     })
 
+    cy.screenshot() // these go inside the screenshots folder, good for testing
+
     cy.get('[data-cy="contact-input-email"]').type('test@example.com{enter}') // => user hitting the enter button
     // cy.get('[data-cy="contact-btn-submit"]').contains('Send Message').should('not.have.attr', 'disabled')
     // the top is equivalent to the bottom
@@ -73,5 +75,19 @@ describe('contact form', () => {
     // .then((el) => {
     //   expect(el.attr('class')).to.contains('invalid')
     // })
+
+
+    // should vs then
+    // doing this doesn't fail when you run "npx cypress run"
+    // should can be more stable    
+    cy.get('[data-cy="contact-input-email"]').as("emailInput")
+    cy.get('@emailInput').focus().blur()
+    cy.get('@emailInput')
+    .parent()
+    // el refers to the parent element of emailInput
+    .should((el) => {
+      expect(el.attr('class')).not.to.be.undefined
+      expect(el.attr('class')).to.contains('invalid')
+    })
   })
 })
