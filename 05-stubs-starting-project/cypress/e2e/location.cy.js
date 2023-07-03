@@ -1,35 +1,31 @@
 /// <reference types="cypress" />
-
-const LONGITUDE = 48.01;
-const LATITUDE = 37.5;
 const NAME = 'John Doe';
 
 describe('share location', () => {
   beforeEach(() => {
-// using then helps us get direct access to the element for example
+    // fixtures are used to mock data
+    cy.fixture('user-location.json').as('userLocation');
+
+    // using then helps us get direct access to the element for example
     // get yields the window object
     // we do this because we know that we need to get access to the window object
     // when accessing the / route
     cy.visit('/').then((window) => {
-      // we create an alias of this stub
-      cy.stub(window.navigator.geolocation, 'getCurrentPosition')
-      .as('getUserPosition')
-      // this function replaces getCurrentPosition with a fake function
-      // this get executed immediately when the function is called
-      .callsFake((cb) => { // cb is the callback function
-        // we use a timeout to simulate the delay of the function
-        // to get the loading spinner
-        setTimeout(() => {
-          cb(
-            {
-              coords: {
-                latitude: LATITUDE,
-                longitude: LONGITUDE,
-              }
-            }
-          )
-        }, 100)
-      })
+      // we get the @userLocation alias to get access to the fixture data
+      cy.get('@userLocation').then(fakePositionData => {
+        // we create an alias of this stub
+        cy.stub(window.navigator.geolocation, 'getCurrentPosition')
+        .as('getUserPosition')
+        // this function replaces getCurrentPosition with a fake function
+        // this get executed immediately when the function is called
+        .callsFake((cb) => { // cb is the callback function
+          // we use a timeout to simulate the delay of the function
+          // to get the loading spinner
+          setTimeout(() => {
+            cb(fakePositionData)
+            }, 100)
+          })
+        })
 
       // writeText expects a promise and make sure it resolves
       cy.stub(window.navigator.clipboard, 'writeText').as('saveToClipboard').resolves();
@@ -54,12 +50,16 @@ describe('share location', () => {
 
     cy.get('@saveToClipboard').should('have.been.called')
 
-    cy.get('@saveToClipboard').should(
-      'have.been.calledWithMatch',
-      // the regex has the latitude, longitude and name, with any
-      // characters in between
-      // make sure to do encodeURI on the name to make it pass
-      new RegExp(`${LATITUDE}.*${LONGITUDE}.*${encodeURI(NAME)}`)
-    );
+    cy.get('@userLocation').then(fakePositionData => {
+      const {longitude, latitude} = fakePositionData.coords;
+
+      cy.get('@saveToClipboard').should(
+        'have.been.calledWithMatch',
+        // the regex has the latitude, longitude and name, with any
+        // characters in between
+        // make sure to do encodeURI on the name to make it pass
+        new RegExp(`${latitude}.*${longitude}.*${encodeURI(NAME)}`)
+        );
+      })
   })
 });
