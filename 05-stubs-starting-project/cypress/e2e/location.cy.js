@@ -29,6 +29,10 @@ describe('share location', () => {
 
       // writeText expects a promise and make sure it resolves
       cy.stub(window.navigator.clipboard, 'writeText').as('saveToClipboard').resolves();
+
+      // these spies are used to check if the functions are called
+      cy.spy(window.localStorage, 'setItem').as('setToLocalStorage')
+      cy.spy(window.localStorage, 'getItem').as('getFromLocalStorage')
     });
   })
   it('should fetch the user location', () => {
@@ -59,7 +63,31 @@ describe('share location', () => {
         // characters in between
         // make sure to do encodeURI on the name to make it pass
         new RegExp(`${latitude}.*${longitude}.*${encodeURI(NAME)}`)
-        );
-      })
+      );
+
+      // we check if the location is stored in the local storage
+      cy.get('@setToLocalStorage').should(
+        'have.been.calledWithMatch',
+        /John Doe/,
+        new RegExp(`${latitude}.*${longitude}.*${encodeURI(NAME)}`))
+    })
+    cy.get('@setToLocalStorage').should('have.been.called')
+
+    // this tests if the location is already stored when we click the button
+    cy.get('[data-cy="share-loc-btn"]').click();
+    cy.get('@getFromLocalStorage').should('have.been.called')
   })
 });
+
+
+/**
+ * spy vs stub
+ *
+ * spies are listeners that are attached to functions
+ * spies are used for evaluating/asserting function calls
+ * spies don't change the behavior of the function
+ *
+ * stubs are used to replace the function with a fake function
+ * stubs are used for evaluating and controlling function calls
+ * stubs do replace the function
+ */
