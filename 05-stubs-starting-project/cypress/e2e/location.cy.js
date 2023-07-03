@@ -26,6 +26,9 @@ describe('share location', () => {
           )
         }, 100)
       })
+
+      // writeText expects a promise and make sure it resolves
+      cy.stub(window.navigator.clipboard, 'writeText').as('saveToClipboard').resolves();
     });
   })
   it('should fetch the user location', () => {
@@ -42,5 +45,7 @@ describe('share location', () => {
   it('should share the location URL', () => {
     cy.get('[data-cy="name-input"]').type('John Doe');
     cy.get('[data-cy="get-loc-btn"]').click();
+    cy.get('[data-cy="share-loc-btn"]').click();
+    cy.get('@saveToClipboard').should('have.been.called')
   })
 });
