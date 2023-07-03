@@ -3,6 +3,10 @@ const NAME = 'John Doe';
 
 describe('share location', () => {
   beforeEach(() => {
+    // clock() is used to manipulate time during these cypress tests
+    // we must initialize it before each test
+    cy.clock();
+
     // fixtures are used to mock data
     cy.fixture('user-location.json').as('userLocation');
 
@@ -76,12 +80,20 @@ describe('share location', () => {
     // this tests if the location is already stored when we click the button
     cy.get('[data-cy="share-loc-btn"]').click();
     cy.get('@getFromLocalStorage').should('have.been.called')
+
+    // this tests the banner that shows up when we click the button
+    cy.get('[data-cy="info-message"]').should('be.visible')
+    // cy.get('[data-cy="info-message"]').should('have.class','visible') => this also works
+
+
+    cy.tick(2000); // we advance the clock by 2 seconds
+    cy.get('[data-cy="info-message"]').should('not.be.visible')
   })
 });
 
 
 /**
- * spy vs stub
+ * spies vs stubs
  *
  * spies are listeners that are attached to functions
  * spies are used for evaluating/asserting function calls
