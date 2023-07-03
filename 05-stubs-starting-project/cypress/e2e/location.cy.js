@@ -1,5 +1,9 @@
 /// <reference types="cypress" />
 
+const LONGITUDE = 48.01;
+const LATITUDE = 37.5;
+const NAME = 'John Doe';
+
 describe('share location', () => {
   beforeEach(() => {
 // using then helps us get direct access to the element for example
@@ -19,8 +23,8 @@ describe('share location', () => {
           cb(
             {
               coords: {
-                latitude: 37.5,
-                longitude: 48.01,
+                latitude: LATITUDE,
+                longitude: LONGITUDE,
               }
             }
           )
@@ -43,9 +47,19 @@ describe('share location', () => {
   });
 
   it('should share the location URL', () => {
-    cy.get('[data-cy="name-input"]').type('John Doe');
+    cy.get('[data-cy="name-input"]').type(NAME);
+
     cy.get('[data-cy="get-loc-btn"]').click();
     cy.get('[data-cy="share-loc-btn"]').click();
+
     cy.get('@saveToClipboard').should('have.been.called')
+
+    cy.get('@saveToClipboard').should(
+      'have.been.calledWithMatch',
+      // the regex has the latitude, longitude and name, with any
+      // characters in between
+      // make sure to do encodeURI on the name to make it pass
+      new RegExp(`${LATITUDE}.*${LONGITUDE}.*${encodeURI(NAME)}`)
+    );
   })
 });
