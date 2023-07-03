@@ -1,8 +1,8 @@
 /// <reference types="cypress" />
 
 describe('share location', () => {
-  it('should fetch the user location', () => {
-    // using then helps us get direct access to the element for example
+  beforeEach(() => {
+// using then helps us get direct access to the element for example
     // get yields the window object
     // we do this because we know that we need to get access to the window object
     // when accessing the / route
@@ -27,7 +27,8 @@ describe('share location', () => {
         }, 100)
       })
     });
-
+  })
+  it('should fetch the user location', () => {
     cy.get('[data-cy="get-loc-btn"]').click();
     // we can "get" an alias and check if it was called
     cy.get('@getUserPosition').should('have.been.called')
@@ -37,4 +38,9 @@ describe('share location', () => {
     cy.get('[data-cy="actions"]').should('contain', 'Location fetched!') // alternative to contains()
 
   });
+
+  it('should share the location URL', () => {
+    cy.get('[data-cy="name-input"]').type('John Doe');
+    cy.get('[data-cy="get-loc-btn"]').click();
+  })
 });
